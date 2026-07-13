@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HerLends · Applicant Risk Screener</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#080B0F;--bg2:#0E1318;--bg3:#141C23;
+  --gold:#C9A84C;--gold-l:#E8C97A;--gold-d:rgba(201,168,76,.15);
+  --green:#2DD87A;--green-d:rgba(45,216,122,.12);
+  --red:#F05252;--red-d:rgba(240,82,82,.12);
+  --amber:#F5A623;--amber-d:rgba(245,166,35,.12);
+  --cream:#E8E2D9;--muted:rgba(232,226,217,.45);--muted2:rgba(232,226,217,.22);
+  --border:rgba(201,168,76,.14);--border2:rgba(232,226,217,.08);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--cream);min-height:100vh;overflow-x:hidden;}
+
+/* ── HEADER ── */
+header{background:var(--bg2);border-bottom:1px solid var(--border);padding:18px 32px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;backdrop-filter:blur(12px);}
+.h-logo{font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:800;color:var(--gold);letter-spacing:1px;}
+.h-logo span{color:var(--cream);opacity:.6;font-weight:600;}
+.h-badge{font-size:.62rem;letter-spacing:3px;background:rgba(240,82,82,.15);border:1px solid rgba(240,82,82,.3);color:#F05252;padding:3px 10px;text-transform:uppercase;font-weight:600;}
+
+/* ── LAYOUT ── */
+.container{max-width:1100px;margin:0 auto;padding:32px 24px;}
+.page-title{font-family:'Syne',sans-serif;font-size:1.8rem;font-weight:800;color:var(--cream);margin-bottom:6px;}
+.page-sub{font-size:.85rem;color:var(--muted);margin-bottom:36px;line-height:1.6;}
+
+/* ── GRID ── */
+.grid{display:grid;grid-template-columns:1fr 340px;gap:24px;align-items:start;}
+
+/* ── SECTIONS ── */
+.sec{background:var(--bg2);border:1px solid var(--border2);padding:24px;margin-bottom:20px;}
+.sec-title{font-family:'Syne',sans-serif;font-size:.78rem;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--gold);margin-bottom:18px;display:flex;align-items:center;gap:8px;}
+.sec-title::before{content:'';width:3px;height:14px;background:var(--gold);}
+
+/* ── FORM ROWS ── */
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
+.frow3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px;}
+.fld{margin-bottom:12px;}
+.fld label{display:block;font-size:.67rem;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:5px;font-weight:600;}
+.fld input,.fld select,.fld textarea{width:100%;background:var(--bg3);border:1px solid var(--border2);color:var(--cream);padding:10px 12px;font-family:'DM Sans',sans-serif;font-size:.86rem;outline:none;transition:border-color .2s;-webkit-appearance:none;appearance:none;}
+.fld input:focus,.fld select:focus{border-color:rgba(201,168,76,.5);}
+.fld select option{background:var(--bg3);}
+.fld textarea{resize:vertical;min-height:64px;font-size:.83rem;}
+.fld input::placeholder{color:var(--muted2);}
+
+/* radio pills */
+.rpills{display:flex;gap:6px;flex-wrap:wrap;margin-top:3px;}
+.rpill{padding:7px 14px;border:1px solid var(--border2);background:transparent;color:var(--muted);font-size:.76rem;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s;letter-spacing:.3px;}
+.rpill:hover{border-color:rgba(201,168,76,.35);color:var(--cream);}
+.rpill.on{border-color:var(--gold);background:var(--gold-d);color:var(--gold);}
+.rpill.red.on{border-color:var(--red);background:var(--red-d);color:var(--red);}
+.rpill.green.on{border-color:var(--green);background:var(--green-d);color:var(--green);}
+
+/* ── SCORE PANEL ── */
+.score-panel{background:var(--bg2);border:1px solid var(--border);position:sticky;top:80px;}
+.score-header{padding:22px 24px;border-bottom:1px solid var(--border2);text-align:center;}
+.score-label{font-size:.65rem;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-bottom:12px;}
+.score-ring{width:130px;height:130px;margin:0 auto 16px;position:relative;}
+.score-ring svg{transform:rotate(-90deg);}
+.score-ring-bg{fill:none;stroke:var(--border2);stroke-width:8;}
+.score-ring-fill{fill:none;stroke-width:8;stroke-linecap:round;transition:stroke-dashoffset .7s cubic-bezier(.4,0,.2,1),stroke .4s;}
+.score-number{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.score-val{font-family:'Syne',sans-serif;font-size:2.2rem;font-weight:800;line-height:1;}
+.score-max{font-size:.65rem;color:var(--muted);letter-spacing:1px;margin-top:2px;}
+.score-verdict{font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;padding:9px 20px;text-align:center;letter-spacing:.5px;margin-top:4px;display:inline-block;}
+.verdict-approve{background:var(--green-d);color:var(--green);border:1px solid rgba(45,216,122,.3);}
+.verdict-review{background:var(--amber-d);color:var(--amber);border:1px solid rgba(245,166,35,.3);}
+.verdict-decline{background:var(--red-d);color:var(--red);border:1px solid rgba(240,82,82,.3);}
+.verdict-pending{background:rgba(232,226,217,.05);color:var(--muted);border:1px solid var(--border2);}
+
+/* breakdown */
+.score-body{padding:20px 24px;}
+.score-section-lbl{font-size:.6rem;letter-spacing:2.5px;text-transform:uppercase;color:var(--muted);margin:16px 0 8px;font-weight:600;}
+.factor-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border2);}
+.factor-row:last-child{border-bottom:none;}
+.factor-name{font-size:.76rem;color:var(--muted);}
+.factor-pts{font-family:'DM Mono',monospace;font-size:.75rem;font-weight:500;}
+.pts-pos{color:var(--green);}
+.pts-neg{color:var(--red);}
+.pts-neu{color:var(--muted);}
+.pts-warn{color:var(--amber);}
+
+/* risk flags */
+.flags{margin-top:16px;}
+.flag{display:flex;align-items:flex-start;gap:8px;padding:8px 10px;margin-bottom:6px;font-size:.76rem;line-height:1.5;}
+.flag-red{background:var(--red-d);border-left:2px solid var(--red);color:#f8a0a0;}
+.flag-amber{background:var(--amber-d);border-left:2px solid var(--amber);color:#f8d080;}
+.flag-green{background:var(--green-d);border-left:2px solid var(--green);color:#90f0b8;}
+.flag-icon{flex-shrink:0;font-size:.85rem;margin-top:1px;}
+
+/* max amount */
+.max-amount-box{margin-top:16px;padding:14px 16px;background:var(--bg3);border:1px solid var(--border);}
+.max-lbl{font-size:.6rem;letter-spacing:2.5px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;}
+.max-val{font-family:'Syne',sans-serif;font-size:1.3rem;font-weight:700;color:var(--gold);}
+.max-pkg{font-size:.7rem;color:var(--muted);margin-top:2px;}
+
+/* action buttons */
+.action-btns{padding:16px 24px;border-top:1px solid var(--border2);display:flex;flex-direction:column;gap:8px;}
+.btn-screen{background:var(--gold);color:var(--bg);border:none;padding:12px;font-family:'Syne',sans-serif;font-size:.82rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;width:100%;transition:background .2s;}
+.btn-screen:hover{background:var(--gold-l);}
+.btn-reset{background:transparent;border:1px solid var(--border2);color:var(--muted);padding:10px;font-family:'DM Sans',sans-serif;font-size:.78rem;cursor:pointer;width:100%;transition:all .2s;}
+.btn-reset:hover{border-color:rgba(232,226,217,.25);color:var(--cream);}
+.btn-print{background:transparent;border:1px solid var(--border2);color:var(--muted);padding:10px;font-family:'DM Sans',sans-serif;font-size:.78rem;cursor:pointer;width:100%;transition:all .2s;}
+.btn-print:hover{border-color:rgba(201,168,76,.35);color:var(--gold);}
+
+/* ── TAGS ── */
+.tag{display:inline-block;font-size:.6rem;letter-spacing:1.5px;padding:2px 8px;text-transform:uppercase;font-weight:600;margin-left:8px;vertical-align:middle;}
+.tag-required{background:rgba(240,82,82,.12);border:1px solid rgba(240,82,82,.25);color:#f08080;}
+.tag-optional{background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.2);color:var(--gold);}
+
+/* divider */
+.divider{height:1px;background:var(--border2);margin:20px 0;}
+
+/* note box */
+.note{background:rgba(245,166,35,.06);border-left:2px solid var(--amber);padding:10px 14px;font-size:.78rem;color:rgba(245,166,35,.85);line-height:1.6;margin-bottom:16px;}
+
+/* mobile */
+@media(max-width:860px){
+  .grid{grid-template-columns:1fr;}
+  .score-panel{position:static;}
+  .frow,.frow3{grid-template-columns:1fr;}
+  header{padding:14px 18px;}
+  .container{padding:20px 16px;}
+}
+@media print{
+  header,.action-btns{display:none;}
+  .score-panel{border:1px solid #ccc;}
+  body{background:#fff;color:#000;}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="h-logo">HerLends <span>· Risk Screener</span></div>
+  <div class="h-badge">🔒 Internal Use Only</div>
+</header>
+
+<div class="container">
+  <div class="page-title">Applicant Risk Assessment</div>
+  <p class="page-sub">Enter the applicant's details below. The scoring engine will calculate their risk level, flag concerns, and recommend a maximum loan amount. This tool is for internal use only — applicants never see this screen.</p>
+
+  <div class="note">⚠ Always verify National ID physically or via NIRA before approving any loan. This tool scores risk based on the information provided — it does not replace your judgment.</div>
+
+  <div class="grid">
+
+    <!-- ═══ LEFT — INPUT FORM ═══ -->
+    <div>
+
+      <!-- IDENTITY -->
+      <div class="sec">
+        <div class="sec-title">1 · Identity & Basic Info</div>
+        <div class="frow">
+          <div class="fld"><label>Full Name <span class="tag tag-required">Required</span></label><input type="text" id="f_name" placeholder="As on National ID" oninput="liveScore()"></div>
+          <div class="fld"><label>Age</label>
+            <div class="rpills" id="age_pills">
+              <button class="rpill" onclick="setPill(this,'age','under18')">Under 18</button>
+              <button class="rpill" onclick="setPill(this,'age','18-25')">18–25</button>
+              <button class="rpill" onclick="setPill(this,'age','26-45')">26–45</button>
+              <button class="rpill" onclick="setPill(this,'age','46-60')">46–60</button>
+              <button class="rpill" onclick="setPill(this,'age','over60')">Over 60</button>
+            </div>
+          </div>
+        </div>
+        <div class="frow">
+          <div class="fld"><label>National ID (NIN) <span class="tag tag-required">Required</span></label><input type="text" id="f_nin" placeholder="CM9XXXXXXXXXX" oninput="liveScore()"></div>
+          <div class="fld"><label>ID Verified Physically?</label>
+            <div class="rpills">
+              <button class="rpill green" onclick="setPill(this,'id_verified','yes')">✓ Yes — ID Confirmed</button>
+              <button class="rpill red" onclick="setPill(this,'id_verified','no')">✗ Not Yet</button>
+              <button class="rpill red" onclick="setPill(this,'id_verified','suspect')">⚠ Looks Suspicious</button>
+            </div>
+          </div>
+        </div>
+        <div class="frow">
+          <div class="fld"><label>Phone Number Active?</label>
+            <div class="rpills">
+              <button class="rpill green" onclick="setPill(this,'phone_active','yes')">✓ Called — Active</button>
+              <button class="rpill red" onclick="setPill(this,'phone_active','no')">✗ Not Reachable</button>
+              <button class="rpill" onclick="setPill(this,'phone_active','unknown')">Not Checked</button>
+            </div>
+          </div>
+          <div class="fld"><label>Marital Status</label>
+            <div class="rpills">
+              <button class="rpill" onclick="setPill(this,'marital','single')">Single</button>
+              <button class="rpill" onclick="setPill(this,'marital','married')">Married</button>
+              <button class="rpill" onclick="setPill(this,'marital','widow')">Widow/Widower</button>
+            </div>
+          </div>
+        </div>
+        <div class="frow">
+          <div class="fld"><label>Number of Dependants (children)</label>
+            <div class="rpills">
+              <button class="rpill" onclick="setPill(this,'children','0')">0</button>
+              <button class="rpill" onclick="setPill(this,'children','1-2')">1–2</button>
+              <button class="rpill" onclick="setPill(this,'children','3-4')">3–4</button>
+              <button class="rpill" onclick="setPill(this,'children','5+')">5+</button>
+            </div>
+          </div>
+          <div class="fld"><label>Living Situation</label>
+            <div class="rpills">
+              <button class="rpill" onclick="setPill(this,'housing','own')">Owns Home</button>
+              <button class="rpill" onclick="setPill(this,'housing','renting')">Renting</button>
+              <button class="rpill red" onclick="setPill(this,'housing','parents')">Lives w/ Parents</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- EMPLOYMENT & INCOME -->
+      <div class="sec">
+        <div class="sec-title">2 · Employment & Income</div>
+        <div class="frow">
+          <div class="fld"><label>Employment Status <span class="tag tag-required">Required</span></label>
+            <div class="rpills">
+              <button class="rpill green" onclick="setPill(this,'emp','employed');showEmpFields('emp')">Employed</button>
+              <button class="rpill green" onclick="setPill(this,'emp','self')">Self-Employed</button>
+              <button class="rpill" onclick="setPill(this,'emp','both');showEmpFields('both')">Both</button>
+              <button class="rpill red" onclick="setPill(this,'emp','none');showEmpFields('none')">Unemployed</button>
+            </div>
+          </div>
+          <div class="fld"><label>Employment Verified?</label>
+            <div class="rpills">
+              <button class="rpill green" onclick="setPill(this,'emp_verified','yes')">✓ Payslip Seen</button>
+              <button class="rpill green" onclick="setPill(this,'emp_verified','called')">✓ Employer Called</button>
+              <button class="rpill red" onclick="setPill(this,'emp_verified','no')">✗ Not Verified</button>
+            </div>
+          </div>
+        </div>
+        <div class="frow" id="empDetailFields">
+          <div class="fld"><label>Monthly Income (UGX)</label>
+            <div class="rpills">
+              <button class="rpill red" onclick="setPill(this,'income','0')">No income</button>
+              <button class="rpill" onclick="setPill(this,'income','lt300')">Below 300K</button>
+              <button class="rpill" onclick="setPill(this,'income','300-700')">300K–700K</button>
+              <button class="rpill" onclick="setPill(this,'income','700-1.5m')">700K–1.5M</button>
+              <button class="rpill green" onclick="setPill(this,'income','above1.5m')">Above 1.5M</button>
+            </div>
+          </div>
+          <div class="fld"><label>Has Side Business?</label>
+            <div class="rpills">
+              <button class="rpill green" onclick="setPill(this,'side_biz','yes')">✓ Yes</button>
+              <button class="rpill" onclick="setPill(this,'side_biz','no')">No</button>
+            </div>
+          </div>
+        </div>
+        <div class="frow">
+          <div class="fld"><label>Contract Type (if employed)</label>
+            <div class="rpills">
+              <button class="rpill green" onclick="setPill(this,'contract','permanent')">Permanent</button>
+              <button class="rpill" onclick="setPill(this,'contract','contract')">Contract</button>
+              <button class="rpill" onclick="setPill(this,'contract','na')">N/A</button>
+            </div>
+          </div>
+          <div class="fld"><label>Chairman's Letter / Business Proof?</label>
+            <div class="rpills">
+              <button class="rpill green" onclick="setPill(this,'chairman','yes')">✓ Provided</button>
+              <button class="rpill red" onclick="setPill(this,'chairman','no')">✗ Not Provided</button>
+              <button class="rpill" onclick="setPill(this,'chairman','na')">N/A</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- LOAN REQUEST -->
+      <div class="sec">
+        <div class="sec-title">3 · Loan Request</div>
+        <div class="frow">
+          <div class="fld"><label>Amount Requested (UGX) <span class="tag tag-required">Required</span></label>
+            <input type="number" id="f_amount" placeholder="e.g. 300000" oninput="liveScore()">
+          </div>
+          <div class="fld"><label>Loan Type</label>
+            <div class="rpills">
+              <button class="rpill" onclick="setPill(this,'loan_type','emergency')">Emergency</button>
+              <button class="rpill" onclick="setPill(this,'loan_type','personal')">Personal</button>
+              <button class="rpill" onclick="setPill(this,'loan_type','salary')">Salary</button>
+              <button class="rpill" onclick="setPill(this,'loan_type','business')">Business</button>
+            </div>
+          </div>
+        </div>
+        <div class="frow">
+          <div class="fld"><label>Is Applicant a Current Member?</label>
+            <div class="rpills">
+              <button class="rpill green" onclick="setPill(this,'member','yes_good')">✓ Member — Good History</button>
+              <button class="rpill" onclick="setPill(this,'member','yes_new')">Member — New / No History</button>
+              <button class="rpill amber" onclick="setPill(this,'member','yes_late')" style="">Member — Has Missed Payments</button>
+              <button class="rpill" onclick="setPill(this,'member','no')">New — Not a Member</button>
+            </div>
+          </div>
+          <div class="fld"><label>Loan Purpose Reasonable?</label>
+            <div class="rpills">
+              <button class="rpill green" onclick="setPill(this,'purpose','clear')">✓ Clear & Sensible</button>
+              <button class="rpill" onclick="setPill(this,'purpose','vague')">Vague</button>
+              <button class="rpill red" onclick="setPill(this,'purpose','suspicious')">Suspicious</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- EXISTING DEBT -->
+      <div class="sec">
+        <div class="sec-title">4 · Existing Debt & Financial Obligations</div>
+        <div class="frow">
+          <div class="fld"><label>Has Other Active Loans?</label>
+            <div class="rpills">
+              <button class="rpill green" onclick="setPill(this,'has_debt','no')">No Other Loans</button>
+              <button class="rpill" onclick="setPill(this,'has_debt','one')">1 Other Loan</button>
+              <button class="rpill" onclick="setPill(this,'has_debt','two')">2 Loans</button>
+              <button class="rpill red" onclick="setPill(this,'has_debt','many')">3+ Loans</button>
+            </div>
+          </div>
+          <div class="fld"><label>Outstanding Debt vs Income Ratio</label>
+            <div class="rpills">
+              <button class="rpill green" onclick="setPill(this,'debt_ratio','low')">Low (&lt;30%)</button>
+              <button class="rpill" onclick="setPill(this,'debt_ratio','medium')">Medium (30–50%)</button>
+              <button class="rpill red" onclick="setPill(this,'debt_ratio','high')">High (&gt;50%)</button>
+              <button class="rpill" onclick="setPill(this,'debt_ratio','unknown')">Unknown</button>
+            </div>
+          </div>
+        </div>
+        <div class="frow">
+          <div class="fld"><label>Weekly Repayment Affordable?<br><small style="color:var(--muted);font-size:.7rem;">(Should not exceed ~35% of weekly income)</small></label>
+            <div class="rpills">
+              <button class="rpill green" onclick="setPill(this,'repay_afford','yes')">✓ Affordable</button>
+              <button class="rpill" onclick="setPill(this,'repay_afford','tight')">Tight but Possible</button>
+              <button class="rpill red" onclick="setPill(this,'repay_afford','no')">Unlikely to Afford</button>
+            </div>
+          </div>
+          <div class="fld"><label>Has HerLends Loan History?</label>
+            <div class="rpills">
+              <button class="rpill green" onclick="setPill(this,'history','clean')">✓ Always Paid on Time</button>
+              <button class="rpill" onclick="setPill(this,'history','late')">Sometimes Late</button>
+              <button class="rpill red" onclick="setPill(this,'history','default')">Defaulted Before</button>
+              <button class="rpill" onclick="setPill(this,'history','none')">No History</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- COLLATERAL & SECURITY -->
+      <div class="sec">
+        <div class="sec-title">5 · Collateral & Security</div>
+        <div class="frow">
+          <div class="fld"><label>Collateral Offered <span class="tag tag-required">Required</span></label>
+            <div class="rpills">
+              <button class="rpill green" onclick="setPill(this,'collateral','strong')">Strong (Logbook, Title Deed)</button>
+              <button class="rpill" onclick="setPill(this,'collateral','moderate')">Moderate (Electronics, Equipment)</button>
+              <button class="rpill" onclick="setPill(this,'collateral','weak')">Weak (Low-Value Items)</button>
+              <button class="rpill red" onclick="setPill(this,'collateral','none')">None Provided</button>
+            </div>
+          </div>
+          <div class="fld"><label>Collateral Value vs Loan Amount</label>
+            <div class="rpills">
+              <button class="rpill green" onclick="setPill(this,'col_value','above')">Worth More Than Loan</button>
+              <button class="rpill" onclick="setPill(this,'col_value','equal')">About Equal</button>
+              <button class="rpill red" onclick="setPill(this,'col_value','below')">Worth Less</button>
+              <button class="rpill" onclick="setPill(this,'col_value','na')">N/A</button>
+            </div>
+          </div>
+        </div>
+        <div class="frow">
+          <div class="fld"><label>Referees Checked?</label>
+            <div class="rpills">
+              <button class="rpill green" onclick="setPill(this,'referees','both')">✓ Both Called — Confirmed</button>
+              <button class="rpill" onclick="setPill(this,'referees','one')">Only One Reached</button>
+              <button class="rpill red" onclick="setPill(this,'referees','none')">None Checked Yet</button>
+              <button class="rpill red" onclick="setPill(this,'referees','fake')">⚠ Seem Fake/Unresponsive</button>
+            </div>
+          </div>
+          <div class="fld"><label>Overall Impression of Applicant</label>
+            <div class="rpills">
+              <button class="rpill green" onclick="setPill(this,'impression','confident')">Confident & Credible</button>
+              <button class="rpill" onclick="setPill(this,'impression','neutral')">Neutral</button>
+              <button class="rpill red" onclick="setPill(this,'impression','nervous')">Evasive / Nervous</button>
+              <button class="rpill red" onclick="setPill(this,'impression','suspicious')">Suspicious Behaviour</button>
+            </div>
+          </div>
+        </div>
+        <div class="fld"><label>Additional Notes</label>
+          <textarea id="f_notes" placeholder="Anything else you noticed about this applicant — behaviour, inconsistencies, red flags, positive signs..." oninput="liveScore()"></textarea>
+        </div>
+      </div>
+
+    </div><!-- end left -->
+
+    <!-- ═══ RIGHT — SCORE PANEL ═══ -->
+    <div class="score-panel">
+      <div class="score-header">
+        <div class="score-label">Risk Score</div>
+        <div class="score-ring">
+          <svg width="130" height="130" viewBox="0 0 130 130">
+            <circle class="score-ring-bg" cx="65" cy="65" r="54"/>
+            <circle class="score-ring-fill" id="ringFill" cx="65" cy="65" r="54"
+              stroke="#C9A84C"
+              stroke-dasharray="339.3"
+              stroke-dashoffset="339.3"/>
+          </svg>
+          <div class="score-number">
+            <div class="score-val" id="scoreVal">—</div>
+            <div class="score-max">/ 100</div>
+          </div>
+        </div>
+        <div id="verdictBox" class="score-verdict verdict-pending">AWAITING INPUT</div>
+      </div>
+
+      <div class="score-body">
+        <div class="score-section-lbl">Score Breakdown</div>
+
+        <div class="factor-row"><span class="factor-name">Identity & Verification</span><span class="factor-pts pts-neu" id="pts_identity">—</span></div>
+        <div class="factor-row"><span class="factor-name">Age & Profile</span><span class="factor-pts pts-neu" id="pts_age">—</span></div>
+        <div class="factor-row"><span class="factor-name">Housing & Stability</span><span class="factor-pts pts-neu" id="pts_housing">—</span></div>
+        <div class="factor-row"><span class="factor-name">Employment & Income</span><span class="factor-pts pts-neu" id="pts_income">—</span></div>
+        <div class="factor-row"><span class="factor-name">Loan vs Income Fit</span><span class="factor-pts pts-neu" id="pts_loanfit">—</span></div>
+        <div class="factor-row"><span class="factor-name">Debt Load</span><span class="factor-pts pts-neu" id="pts_debt">—</span></div>
+        <div class="factor-row"><span class="factor-name">Collateral</span><span class="factor-pts pts-neu" id="pts_collateral">—</span></div>
+        <div class="factor-row"><span class="factor-name">Repayment History</span><span class="factor-pts pts-neu" id="pts_history">—</span></div>
+        <div class="factor-row"><span class="factor-name">Referees & Purpose</span><span class="factor-pts pts-neu" id="pts_referees">—</span></div>
+        <div class="factor-row"><span class="factor-name">General Impression</span><span class="factor-pts pts-neu" id="pts_impression">—</span></div>
+
+        <div id="maxAmountBox" class="max-amount-box" style="display:none">
+          <div class="max-lbl">Recommended Max Loan</div>
+          <div class="max-val" id="maxAmountVal">—</div>
+          <div class="max-pkg" id="maxAmountPkg">—</div>
+        </div>
+
+        <div id="flagsBox" class="flags"></div>
+      </div>
+
+      <div class="action-btns">
+        <button class="btn-screen" onclick="runScreen()">▶ RUN FULL SCREEN</button>
+        <button class="btn-print" onclick="window.print()">🖨 Print / Save as PDF</button>
+        <button class="btn-reset" onclick="resetAll()">↺ Clear & Reset</button>
+      </div>
+    </div><!-- end score panel -->
+
+  </div><!-- end grid -->
+</div><!-- end container -->
+
+<script>
+// ── STATE ──────────────────────────────────────────────────────────────────
+const state = {};
+
+function setPill(btn, key, val) {
+  const group = btn.closest('.rpills');
+  group.querySelectorAll('.rpill').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  state[key] = val;
+  liveScore();
+}
+
+function showEmpFields(type) {
+  document.getElementById('empDetailFields').style.display = type === 'none' ? 'none' : 'grid';
+}
+
+// ── SCORING ENGINE ──────────────────────────────────────────────────────────
+function calcScore() {
+  const pts = {};
+  const flags = [];
+  let total = 0;
+
+  // ── 1. IDENTITY (20 pts) ──────────────────────────────────────────────
+  let identity = 0;
+  const nin = (document.getElementById('f_nin').value || '').trim();
+  const name = (document.getElementById('f_name').value || '').trim();
+
+  if (!name) flags.push({type:'red', msg:'No applicant name entered.'});
+  if (!nin || nin.length < 10) {
+    flags.push({type:'red', msg:'National ID missing or too short — do not proceed without a valid NIN.'});
+    identity -= 10;
+  } else {
+    identity += 5;
+  }
+
+  if (state.id_verified === 'yes') identity += 10;
+  else if (state.id_verified === 'suspect') { identity -= 15; flags.push({type:'red', msg:'ID appears suspicious — verify physically with NIRA before proceeding.'}); }
+  else if (state.id_verified === 'no') { identity -= 5; flags.push({type:'amber', msg:'National ID not yet physically verified.'}); }
+
+  if (state.phone_active === 'yes') identity += 5;
+  else if (state.phone_active === 'no') { identity -= 8; flags.push({type:'red', msg:'Phone number not reachable — cannot contact applicant.'}); }
+
+  pts.identity = Math.max(-20, Math.min(20, identity));
+
+  // ── 2. AGE & PROFILE (8 pts) ─────────────────────────────────────────
+  let age = 0;
+  if (state.age === 'under18') { age = -20; flags.push({type:'red', msg:'Applicant is under 18 — not eligible for any loan.'}); }
+  else if (state.age === '18-25') age = 3;
+  else if (state.age === '26-45') age = 8;
+  else if (state.age === '46-60') age = 5;
+  else if (state.age === 'over60') { age = 1; flags.push({type:'amber', msg:'Applicant over 60 — assess repayment capacity carefully.'}); }
+
+  if (state.marital === 'married') age += 2;
+  if (state.children === '1-2') age += 2;
+  else if (state.children === '5+') { age -= 2; flags.push({type:'amber', msg:'5+ dependants — high household expense burden.'}); }
+
+  pts.age = Math.max(-10, Math.min(10, age));
+
+  // ── 3. HOUSING & STABILITY (7 pts) ───────────────────────────────────
+  let housing = 0;
+  if (state.housing === 'own') housing = 7;
+  else if (state.housing === 'renting') housing = 4;
+  else if (state.housing === 'parents') {
+    housing = -2;
+    flags.push({type:'amber', msg:'Lives with parents — no independent household. Collateral risk is higher.'});
+  }
+  pts.housing = housing;
+
+  // ── 4. EMPLOYMENT & INCOME (20 pts) ──────────────────────────────────
+  let income = 0;
+  if (state.emp === 'employed') income += 10;
+  else if (state.emp === 'self') income += 8;
+  else if (state.emp === 'both') income += 14;
+  else if (state.emp === 'none') { income -= 15; flags.push({type:'red', msg:'Applicant is unemployed — very high risk. Only consider emergency micro-loan up to UGX 50,000 max.'}); }
+
+  if (state.income === '0') { income -= 10; }
+  else if (state.income === 'lt300') income += 2;
+  else if (state.income === '300-700') income += 5;
+  else if (state.income === '700-1.5m') income += 8;
+  else if (state.income === 'above1.5m') income += 12;
+
+  if (state.side_biz === 'yes') income += 4;
+  if (state.emp_verified === 'yes' || state.emp_verified === 'called') income += 4;
+  else if (state.emp_verified === 'no') { income -= 5; flags.push({type:'amber', msg:'Employment not verified — call employer or check payslip before approving.'}); }
+
+  if (state.contract === 'permanent') income += 3;
+  if (state.chairman === 'yes') income += 2;
+  else if (state.chairman === 'no' && (state.emp === 'self' || state.emp === 'both')) {
+    flags.push({type:'amber', msg:"Chairman's recognition letter not provided for self-employed applicant."});
+    income -= 2;
+  }
+
+  pts.income = Math.max(-20, Math.min(22, income));
+
+  // ── 5. LOAN VS INCOME FIT (12 pts) ───────────────────────────────────
+  let loanfit = 0;
+  const amt = parseInt(document.getElementById('f_amount').value) || 0;
+
+  // Income-to-loan ratio scoring
+  const incomeMap = {lt300: 300000, '300-700': 500000, '700-1.5m': 1100000, above1.5m: 2000000};
+  const monthlyIncome = incomeMap[state.income] || 0;
+  const weeklyIncome = monthlyIncome / 4;
+  const weeklyRepay = amt * 1.2 / 4; // 20% interest / 4 weeks
+
+  if (amt === 0) {
+    loanfit = 0;
+  } else if (monthlyIncome === 0) {
+    loanfit = -10;
+    flags.push({type:'red', msg:'No declared income — cannot assess repayment capacity.'});
+  } else {
+    const ratio = weeklyRepay / weeklyIncome;
+    if (ratio <= 0.25) loanfit = 12;
+    else if (ratio <= 0.35) loanfit = 8;
+    else if (ratio <= 0.50) { loanfit = 3; flags.push({type:'amber', msg:`Weekly repayment (≈ UGX ${Math.round(weeklyRepay).toLocaleString()}) is ${Math.round(ratio*100)}% of weekly income — tight. Reduce loan or extend term.`}); }
+    else { loanfit = -8; flags.push({type:'red', msg:`Weekly repayment (≈ UGX ${Math.round(weeklyRepay).toLocaleString()}) exceeds 50% of weekly income — not affordable at this amount.`}); }
+  }
+
+  if (state.repay_afford === 'yes') loanfit += 3;
+  else if (state.repay_afford === 'tight') loanfit += 0;
+  else if (state.repay_afford === 'no') { loanfit -= 8; flags.push({type:'red', msg:'Applicant assessed as unlikely to afford weekly repayment.'}); }
+
+  pts.loanfit = Math.max(-15, Math.min(15, loanfit));
+
+  // ── 6. DEBT LOAD (10 pts) ─────────────────────────────────────────────
+  let debt = 0;
+  if (state.has_debt === 'no') debt = 10;
+  else if (state.has_debt === 'one') debt = 5;
+  else if (state.has_debt === 'two') { debt = 0; flags.push({type:'amber', msg:'Applicant already has 2 active loans — assess total debt burden carefully.'}); }
+  else if (state.has_debt === 'many') { debt = -10; flags.push({type:'red', msg:'3+ active loans — extremely high debt burden. Strongly advise decline.'}); }
+
+  if (state.debt_ratio === 'low') debt += 3;
+  else if (state.debt_ratio === 'high') { debt -= 5; flags.push({type:'red', msg:'Debt-to-income ratio above 50% — monthly obligations are already heavy.'}); }
+
+  pts.debt = Math.max(-12, Math.min(12, debt));
+
+  // ── 7. COLLATERAL (12 pts) ────────────────────────────────────────────
+  let col = 0;
+  if (state.collateral === 'strong') col = 12;
+  else if (state.collateral === 'moderate') col = 7;
+  else if (state.collateral === 'weak') { col = 3; flags.push({type:'amber', msg:'Collateral offered is weak — may not cover loan value in case of default.'}); }
+  else if (state.collateral === 'none') { col = -10; flags.push({type:'red', msg:'No collateral provided — required for all packages. Do not approve without collateral.'}); }
+
+  if (state.col_value === 'above') col += 3;
+  else if (state.col_value === 'below') { col -= 3; flags.push({type:'amber', msg:'Collateral value is less than loan amount requested.'}); }
+
+  pts.collateral = Math.max(-12, Math.min(15, col));
+
+  // ── 8. REPAYMENT HISTORY (10 pts) ────────────────────────────────────
+  let hist = 0;
+  if (state.member === 'yes_good') { hist = 10; }
+  else if (state.member === 'yes_new') hist = 3;
+  else if (state.member === 'yes_late') { hist = -3; flags.push({type:'amber', msg:'Member has a history of late payments — require stronger collateral.'}); }
+  else if (state.member === 'no') hist = 1;
+
+  if (state.history === 'clean') hist += 5;
+  else if (state.history === 'late') { hist -= 2; }
+  else if (state.history === 'default') { hist -= 10; flags.push({type:'red', msg:'Applicant previously defaulted on a HerLends loan — must clear outstanding balance first.'}); }
+
+  pts.history = Math.max(-12, Math.min(15, hist));
+
+  // ── 9. REFEREES & PURPOSE (6 pts) ────────────────────────────────────
+  let ref = 0;
+  if (state.referees === 'both') ref = 6;
+  else if (state.referees === 'one') { ref = 2; flags.push({type:'amber', msg:'Only one referee reached — call both before approving.'}); }
+  else if (state.referees === 'none') { ref = -3; flags.push({type:'amber', msg:'Neither referee checked yet. Always verify both before approving.'}); }
+  else if (state.referees === 'fake') { ref = -8; flags.push({type:'red', msg:'Referees appear fake or unresponsive — major red flag. Do not approve.'}); }
+
+  if (state.purpose === 'clear') ref += 3;
+  else if (state.purpose === 'vague') { ref += 0; flags.push({type:'amber', msg:'Loan purpose is vague — ask the applicant to explain more clearly.'}); }
+  else if (state.purpose === 'suspicious') { ref -= 5; flags.push({type:'red', msg:'Loan purpose is suspicious — investigate before proceeding.'}); }
+
+  pts.referees = Math.max(-10, Math.min(9, ref));
+
+  // ── 10. GENERAL IMPRESSION (5 pts) ────────────────────────────────────
+  let imp = 0;
+  if (state.impression === 'confident') imp = 5;
+  else if (state.impression === 'neutral') imp = 2;
+  else if (state.impression === 'nervous') { imp = -2; flags.push({type:'amber', msg:'Applicant appeared evasive or nervous — trust your instinct and investigate further.'}); }
+  else if (state.impression === 'suspicious') { imp = -5; flags.push({type:'red', msg:'Suspicious behaviour observed — do not approve until fully clarified.'}); }
+
+  pts.impression = imp;
+
+  // ── TOTAL ─────────────────────────────────────────────────────────────
+  total = pts.identity + pts.age + pts.housing + pts.income + pts.loanfit + pts.debt + pts.collateral + pts.history + pts.referees + pts.impression;
+
+  // Scale to 0–100
+  // Max possible ≈ 20+10+7+22+15+12+15+15+9+5 = 130 raw → map to 0–100
+  // Min possible ≈ heavily negative
+  const rawMax = 130;
+  const normalised = Math.max(0, Math.min(100, Math.round((total / rawMax) * 100)));
+
+  // ── RECOMMENDED MAX AMOUNT ────────────────────────────────────────────
+  let recommendedMax = 0;
+  let recommendedPkg = '';
+
+  if (state.emp === 'none') {
+    recommendedMax = normalised >= 40 ? 50000 : 0;
+    recommendedPkg = 'Emergency only — Non-Member max';
+  } else if (normalised >= 75) {
+    if (amt >= 3000000) { recommendedMax = 10000000; recommendedPkg = 'Diamond package eligible'; }
+    else if (amt >= 500000) { recommendedMax = 2500000; recommendedPkg = 'Gold package eligible (if 6+ months member)'; }
+    else { recommendedMax = 500000; recommendedPkg = 'Silver package eligible'; }
+  } else if (normalised >= 55) {
+    if (amt >= 500000) { recommendedMax = 500000; recommendedPkg = 'Silver max — Gold requires stronger profile'; }
+    else recommendedMax = Math.min(amt, 500000);
+    recommendedPkg = recommendedPkg || 'Silver package';
+  } else if (normalised >= 40) {
+    recommendedMax = Math.min(amt, 190000);
+    recommendedPkg = 'Bronze package only';
+  } else if (normalised >= 25) {
+    recommendedMax = 50000;
+    recommendedPkg = 'Non-member emergency loan only';
+  } else {
+    recommendedMax = 0;
+    recommendedPkg = 'Not recommended for any loan at this time';
+  }
+
+  return { pts, total, normalised, flags, recommendedMax, recommendedPkg };
+}
+
+// ── RENDER ──────────────────────────────────────────────────────────────────
+function renderScore(result) {
+  const { pts, normalised, flags, recommendedMax, recommendedPkg } = result;
+
+  // Score ring
+  const circumference = 339.3;
+  const offset = circumference - (normalised / 100) * circumference;
+  const ring = document.getElementById('ringFill');
+  ring.style.strokeDashoffset = offset;
+
+  let ringColor = '#C9A84C';
+  if (normalised >= 70) ringColor = '#2DD87A';
+  else if (normalised >= 45) ringColor = '#F5A623';
+  else ringColor = '#F05252';
+  ring.style.stroke = ringColor;
+
+  document.getElementById('scoreVal').textContent = normalised;
+  document.getElementById('scoreVal').style.color = ringColor;
+
+  // Verdict
+  const vbox = document.getElementById('verdictBox');
+  vbox.className = 'score-verdict';
+  if (normalised >= 70) { vbox.classList.add('verdict-approve'); vbox.textContent = '✓ APPROVE'; }
+  else if (normalised >= 45) { vbox.classList.add('verdict-review'); vbox.textContent = '⚠ REVIEW CAREFULLY'; }
+  else { vbox.classList.add('verdict-decline'); vbox.textContent = '✗ DECLINE'; }
+
+  // Breakdown
+  const pMap = [
+    ['pts_identity', pts.identity, 20],
+    ['pts_age', pts.age, 10],
+    ['pts_housing', pts.housing, 7],
+    ['pts_income', pts.income, 22],
+    ['pts_loanfit', pts.loanfit, 15],
+    ['pts_debt', pts.debt, 12],
+    ['pts_collateral', pts.collateral, 15],
+    ['pts_history', pts.history, 15],
+    ['pts_referees', pts.referees, 9],
+    ['pts_impression', pts.impression, 5],
+  ];
+  pMap.forEach(([id, val, max]) => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.textContent = (val >= 0 ? '+' : '') + val + ' / ' + max;
+      el.className = 'factor-pts ' + (val >= max * 0.6 ? 'pts-pos' : val >= 0 ? 'pts-warn' : 'pts-neg');
+    }
+  });
+
+  // Max amount
+  const maxBox = document.getElementById('maxAmountBox');
+  maxBox.style.display = 'block';
+  document.getElementById('maxAmountVal').textContent = recommendedMax > 0
+    ? 'UGX ' + recommendedMax.toLocaleString()
+    : 'Not Recommended';
+  document.getElementById('maxAmountPkg').textContent = recommendedPkg;
+
+  // Flags
+  const flagsBox = document.getElementById('flagsBox');
+  if (flags.length === 0) {
+    flagsBox.innerHTML = '<div class="flag flag-green"><span class="flag-icon">✓</span>No major red flags detected. Proceed with standard due diligence.</div>';
+  } else {
+    // Sort: red first, then amber, then green
+    const order = {red:0, amber:1, green:2};
+    flags.sort((a,b) => order[a.type] - order[b.type]);
+    flagsBox.innerHTML = flags.map(f =>
+      `<div class="flag flag-${f.type}"><span class="flag-icon">${f.type==='red'?'🚨':f.type==='amber'?'⚠':'✓'}</span>${f.msg}</div>`
+    ).join('');
+  }
+}
+
+function liveScore() {
+  const nin = (document.getElementById('f_nin').value || '').trim();
+  const name = (document.getElementById('f_name').value || '').trim();
+  const amt = parseInt(document.getElementById('f_amount').value) || 0;
+  // Only live-score if at least some data is there
+  if (name || nin || amt || Object.keys(state).length > 0) {
+    renderScore(calcScore());
+  }
+}
+
+function runScreen() {
+  renderScore(calcScore());
+  document.querySelector('.score-panel').scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+function resetAll() {
+  if (!confirm('Clear all data and reset the screener?')) return;
+  document.getElementById('f_name').value = '';
+  document.getElementById('f_nin').value = '';
+  document.getElementById('f_amount').value = '';
+  document.getElementById('f_notes').value = '';
+  document.querySelectorAll('.rpill').forEach(b => b.classList.remove('on'));
+  Object.keys(state).forEach(k => delete state[k]);
+
+  document.getElementById('scoreVal').textContent = '—';
+  document.getElementById('scoreVal').style.color = 'var(--cream)';
+  document.getElementById('ringFill').style.strokeDashoffset = '339.3';
+  document.getElementById('ringFill').style.stroke = '#C9A84C';
+  document.getElementById('verdictBox').className = 'score-verdict verdict-pending';
+  document.getElementById('verdictBox').textContent = 'AWAITING INPUT';
+  document.getElementById('maxAmountBox').style.display = 'none';
+  document.getElementById('flagsBox').innerHTML = '';
+  ['pts_identity','pts_age','pts_housing','pts_income','pts_loanfit','pts_debt','pts_collateral','pts_history','pts_referees','pts_impression']
+    .forEach(id => { const el=document.getElementById(id); if(el){el.textContent='—';el.className='factor-pts pts-neu';} });
+}
+</script>
+</body>
+</html>
